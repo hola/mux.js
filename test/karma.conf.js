@@ -19,17 +19,21 @@ module.exports = function(config) {
       '../lib/exp-golomb.js',
       '../lib/mp4-generator.js',
       '../lib/mp4-inspector.js',
+      '../lib/mp4parser.js',
       '../lib/transmuxer.js',
       '../lib/metadata-stream.js',
       '../lib/caption-stream.js',
 
       'sintel-captions.js',
       'test-segment.js',
+      'mp4videop.js',
+      'mp4videononp.js',
       'id3-generator.js',
 
       'exp-golomb-test.js',
       'mp4-generator-test.js',
       'mp4-inspector-test.js',
+      'mp4parser-test.js',
       'transmuxer-test.js',
       'metadata-stream-test.js',
       'caption-stream-test.js'
