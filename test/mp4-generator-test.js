@@ -67,7 +67,7 @@ validateTkhd = function(tkhd, expected) {
         'wrote duration into the track header');
   equal(tkhd.width, expected.width || 0, 'wrote width into the track header');
   equal(tkhd.height, expected.height || 0, 'wrote height into the track header');
-  equal(tkhd.volume, 1, 'set volume to 1');
+  equal(tkhd.volume, expected.volume, 'set volume to 1');
 };
 
 validateMdia = function(mdia, expected) {
@@ -315,7 +315,8 @@ test('generates a video moov', function() {
   validateTrak(boxes[0].boxes[1], {
     duration: 100,
     width: 600,
-    height: 300
+    height: 300,
+    volume: 0,
   });
   validateMvex(boxes[0].boxes[2]);
 });
@@ -343,7 +344,8 @@ test('generates an audio moov', function() {
   validateMvhd(boxes[0].boxes[0]);
   validateTrak(boxes[0].boxes[1], {
     type: 'audio',
-    timescale: 48000
+    timescale: 48000,
+    volume: 1,
   });
   validateMvex(boxes[0].boxes[2], {
     sampleDegradationPriority: 0

@@ -129,24 +129,24 @@ test('parse a single sample to correct NALs', function(){
             },
         }
     });
-    strictEqual(res[0].nalUnitType, 'seq_parameter_set_rbsp',
+    strictEqual(res[0].nalUnitType, 'access_unit_delimiter_rbsp',
+        'added AU delimiter');
+    strictEqual(res[0].data[0], 0x09, 'correct access_unit_delimiter code');
+    strictEqual(res[1].nalUnitType, 'seq_parameter_set_rbsp',
         'inserted 1st SPS');
-    deepEqual(res[0].config, {
+    deepEqual(res[1].config, {
         profileIdc: 100,
         levelIdc: 30,
         profileCompatibility: 0,
         width: 640,
         height: 480,
     }, 'correct decoder config');
-    deepEqual(res[0].data, new Uint8Array([0, 1, 2]), 'correct 1st SPS NAL');
-    strictEqual(res[1].nalUnitType, 'seq_parameter_set_rbsp',
+    deepEqual(res[1].data, new Uint8Array([0, 1, 2]), 'correct 1st SPS NAL');
+    strictEqual(res[2].nalUnitType, 'seq_parameter_set_rbsp',
         'inserted 2nd SPS');
-    deepEqual(res[1].data, new Uint8Array([3, 4, 5]), 'correct 1st SPS NAL');
-    strictEqual(res[2].nalUnitType, 'pic_parameter_set_rbsp', 'inserted PPS');
-    deepEqual(res[2].data, new Uint8Array([6, 7, 8]), 'correct PPS NAL');
-    strictEqual(res[3].nalUnitType, 'access_unit_delimiter_rbsp',
-        'added AU delimiter');
-    strictEqual(res[3].data[0], 0x09, 'correct access_unit_delimiter code');
+    deepEqual(res[2].data, new Uint8Array([3, 4, 5]), 'correct 2nd SPS NAL');
+    strictEqual(res[3].nalUnitType, 'pic_parameter_set_rbsp', 'inserted PPS');
+    deepEqual(res[3].data, new Uint8Array([6, 7, 8]), 'correct PPS NAL');
     strictEqual(res[4].nalUnitType,
         'slice_layer_without_partitioning_rbsp_idr', 'correct mark IDR');
     strictEqual(res[0].dts, res[4].dts, 'consistent DTS during the sample');
@@ -211,23 +211,23 @@ test('parse sample sequence', function(){
         dr: dr2,
     }]);
     var sequence = [
+        'access_unit_delimiter_rbsp',
         'seq_parameter_set_rbsp',
         'seq_parameter_set_rbsp',
         'pic_parameter_set_rbsp',
-        'access_unit_delimiter_rbsp',
         'slice_layer_without_partitioning_rbsp_idr',
         'access_unit_delimiter_rbsp',
         undefined,
         undefined,
+        'access_unit_delimiter_rbsp',
         'seq_parameter_set_rbsp',
         'pic_parameter_set_rbsp',
-        'access_unit_delimiter_rbsp',
         'slice_layer_without_partitioning_rbsp_idr',
         undefined
     ];
     deepEqual(res.map(function(e){ return e.nalUnitType; }), sequence,
         'correct NAL unit sequence');
-    deepEqual(res[8].data, new Uint8Array([0, 1, 2]),
+    deepEqual(res[9].data, new Uint8Array([0, 1, 2]),
         'correct sync SPS NAL after changing of parameters');
 });
 test('flushing video filter', function(){
@@ -258,10 +258,10 @@ test('flushing video filter', function(){
     var res1 = push_collect(videofilter, sample);
     var res2 = push_collect(videofilter, sample);
     var sequence = [
+        'access_unit_delimiter_rbsp',
         'seq_parameter_set_rbsp',
         'seq_parameter_set_rbsp',
         'pic_parameter_set_rbsp',
-        'access_unit_delimiter_rbsp',
         'slice_layer_without_partitioning_rbsp_idr'
     ];
     deepEqual(res2.map(function(e){ return e.nalUnitType; }), sequence,
@@ -421,11 +421,11 @@ test('full pipeline test', function(){
             'correct heigth');
         strictEqual(box.boxes[0].duration, type=='video' ? 360000 : 193024,
             'correct duration');
-        strictEqual(box.boxes[1].boxes[0].timescale, type=='video' ?
+        strictEqual(box.boxes[2].boxes[0].timescale, type=='video' ?
             90000 : 48000, 'correct timescale');
-        strictEqual(box.boxes[1].boxes[1].handlerType, type=='video' ?
+        strictEqual(box.boxes[2].boxes[1].handlerType, type=='video' ?
             'vide' : 'soun', 'correct handler');
-        var stbl = box.boxes[1].boxes[2].boxes[2];
+        var stbl = box.boxes[2].boxes[2].boxes[2];
         strictEqual(stbl.type, 'stbl', 'correct stbl type');
         strictEqual(stbl.boxes[0].type, 'stsd', 'there is stsd box');
         if (type=='video')
@@ -507,7 +507,7 @@ test('full pipeline test', function(){
     equal(res.length, 1, 'correct fragment');
     deepEqual(boxes.map(function(e){ return e.type; }), ['ftyp', 'moov',
         'moof', 'mdat', 'moof', 'mdat'], 'correct box sequence');
-    deepEqual(boxes.map(function(e){ return e.size; }), [24, 1097, 1132, 86325,
+    deepEqual(boxes.map(function(e){ return e.size; }), [24, 1169, 1132, 86325,
         1612, 65379]);
     strictEqual(boxes[1].boxes[0].type, 'mvhd', 'there is movie header');
     strictEqual(boxes[1].boxes[0].duration, 0xFFFFFFFF, 'correct duration');
