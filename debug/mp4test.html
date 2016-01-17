@@ -80,27 +80,7 @@
         </section>
         <section id="video-place">
         </section>
-        <section>
-          <h2>Comparison</h2>
-          <div id="comparison">
-            A diff of the structure of the two MP4s will appear here
-            once you've specified an input TS file and a known working
-            MP4.
-          </div>
-        </section>
-        <section>
-          <h2>Structure</h2>
-          <div class="result-wrapper">
-            <h3>videojs-contrib-hls</h3>
-            <pre class="vjs-boxes">
-            </pre>
-          </div>
-          <div class="result-wrapper">
-            <h3>Working</h3>
-            <pre class="working-boxes"></pre>
-          </div>
-        </section>
-      </article>
+     </article>
 
     </div> <!-- #main -->
   </div> <!-- #main-container -->
@@ -277,13 +257,13 @@
         if (combined) {
             transmuxer = new muxjs.mp2t.Transmuxer({
                 input_type: 'mp4',
-                no_multi_init: 0,
+                no_multi_init: 1,
             });
         } else {
             transmuxer = new muxjs.mp2t.Transmuxer({
                 input_type: 'mp4',
                 remux: false,
-                no_multi_init: 0,
+                no_multi_init: 1,
             });
         }
 

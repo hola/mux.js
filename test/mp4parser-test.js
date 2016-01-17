@@ -302,8 +302,8 @@ test('correct output with added decoder information', function(){
     strictEqual(res[0].audioobjecttype, 2, 'correct object type');
     strictEqual(res[0].samplingfrequencyindex, 4, 'correct freq index');
     strictEqual(res[0].ts, 44100, 'correct time scale');
-    strictEqual(res[0].dts, 441000, 'correct DTS');
-    strictEqual(res[0].pts, 441000, 'correct PTS');
+    strictEqual(res[0].dts, 900000, 'correct DTS');
+    strictEqual(res[0].pts, 900000, 'correct PTS');
     deepEqual(res[0].data, new Uint8Array([0, 1, 2, 3, 4]),
         'correct sample data');
     res = push_collect(audiofilter, packet);
@@ -510,7 +510,7 @@ test('full pipeline test', function(){
     deepEqual(boxes.map(function(e){ return e.size; }), [24, 1169, 1132, 86325,
         1612, 65379]);
     strictEqual(boxes[1].boxes[0].type, 'mvhd', 'there is movie header');
-    strictEqual(boxes[1].boxes[0].duration, 0xFFFFFFFF, 'correct duration');
+    strictEqual(boxes[1].boxes[0].duration, 361980, 'correct duration');
     strictEqual(boxes[1].boxes[0].timescale, 90000, 'correct timescale');
     deepEqual(boxes[1].boxes[0].matrix, identity, 'correct matrix');
     check_trak(boxes[1].boxes[1], 'video');
