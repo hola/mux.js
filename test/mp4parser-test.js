@@ -378,7 +378,7 @@ test('parsing non-progressive MP4 with small window size', function(){
     var window_size = 256;
     var res = [];
     mp4parser.on('data', function(output){
-        output.data = output.data && new Uint8Array(output.data);
+        output.data = output.data&&new Uint8Array(output.data);
         res.push(output);
     });
     var pos = 0;
@@ -401,6 +401,29 @@ test('parsing non-progressive MP4 with small window size', function(){
         'correct descriptor compatibility');
     strictEqual(res[1].dr.avcc.avc_l_i, 10, 'correct descriptor level');
     deepEqual(res[3].data, frame3_nonp, 'correct intermittent frame');
+});
+test('seeking MP4', function(){
+    var window_size = 16384;
+    var is_metadata = false;
+    mp4parser.on('data', function(output){
+        if (output.type=='metadata')
+            is_metadata = true;
+    });
+    var pos = 0;
+    while (!is_metadata&&pos<mp4video_s.length)
+    {
+        pos = mp4parser.push(mp4video_s.slice(pos, Math.min(pos+window_size,
+            mp4video_s.length)));
+    }
+    ok(true, 'parsed metadata');
+    strictEqual(mp4parser.seek(7, true), 102440,
+        'seek position of 7s sync ok');
+    strictEqual(mp4parser.seek(8, true), 102440,
+        'seek position of 8s sync ok');
+    strictEqual(mp4parser.seek(7, false), 202013,
+        'seek position of 7s off-sync ok');
+    strictEqual(mp4parser.seek(8, false), 255505,
+        'seek position of 8s off-sync ok');
 });
 
 module('Transmuxer Stream', {

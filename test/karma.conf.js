@@ -27,6 +27,7 @@ module.exports = function(config) {
       'sintel-captions.js',
       'test-segment.js',
       'mp4videop.js',
+      'mp4videos.js',
       'mp4videononp.js',
       'id3-generator.js',
 
