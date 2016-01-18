@@ -1,6 +1,6 @@
-(function(window, muxjs) {
-'use strict';
+(function(window, muxjs){
 
+'use strict'; /*jslint browser:true, es5:true*/
 var mp4parser, videofilter, audiofilter, transmuxer;
 var identity = new Uint32Array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0]);
@@ -231,7 +231,7 @@ test('parse sample sequence', function(){
         'correct sync SPS NAL after changing of parameters');
 });
 test('flushing video filter', function(){
-    var sample =  {
+    var sample = {
         data: new Uint8Array([0x00, 0x00, 0x00, 0x04, 0x05, 0x4, 0x3, 0x2]),
         ts: 16384,
         pts: 173000,
@@ -325,6 +325,8 @@ test('parsing progressive MP4', function(){
     strictEqual(res[0].tracks[0].duration, 360000, 'correct video duration');
     strictEqual(res[0].tracks[0].width, 320, 'correct video width');
     strictEqual(res[0].tracks[0].height, 240, 'correct video height');
+    strictEqual(res[0].tracks[0].bitrate, 171836, 'correct video bitrate');
+    strictEqual(res[0].tracks[1].bitrate, 130048, 'correct audio bitrate');
     strictEqual(res[0].tracks[0].timelineStartInfo.baseMediaDecodeTime, 0,
         'correct track start time');
     strictEqual(res[0].tracks.length, 2, 'correct number of tracks');
