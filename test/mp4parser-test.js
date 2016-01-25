@@ -418,14 +418,22 @@ test('seeking MP4', function(){
             mp4video_s.length)));
     }
     ok(true, 'parsed metadata');
-    strictEqual(mp4parser.seek(7, true), 102440,
+    strictEqual(mp4parser.seek(7, true).offset, 99104,
         'seek position of 7s sync ok');
-    strictEqual(mp4parser.seek(8, true), 102440,
+    strictEqual(mp4parser.seek(8, true).offset, 99104,
         'seek position of 8s sync ok');
-    strictEqual(mp4parser.seek(7, false), 202013,
+    strictEqual(mp4parser.seek(7, false).offset, 200896,
         'seek position of 7s off-sync ok');
-    strictEqual(mp4parser.seek(8, false), 255505,
+    strictEqual(mp4parser.seek(8, false).offset, 254844,
         'seek position of 8s off-sync ok');
+    var si = mp4parser.seek(7, true);
+    deepEqual(mp4parser.seek(si.time, true), si,
+        'seek position of 7s sync stability');
+    deepEqual(mp4parser.seek(8, true), si,
+        'seek position of 8s sync stability');
+    var si = mp4parser.seek(4.1, true);
+    deepEqual(mp4parser.seek(si.time, true), si,
+        'seek position of 4.1s sync stability');
 });
 
 module('Transmuxer Stream', {
@@ -535,7 +543,7 @@ test('full pipeline test', function(){
     deepEqual(boxes.map(function(e){ return e.size; }), [24, 1169, 1132, 86325,
         1612, 65379]);
     strictEqual(boxes[1].boxes[0].type, 'mvhd', 'there is movie header');
-    strictEqual(boxes[1].boxes[0].duration, 361980, 'correct duration');
+    strictEqual(boxes[1].boxes[0].duration, 361920, 'correct duration');
     strictEqual(boxes[1].boxes[0].timescale, 90000, 'correct timescale');
     deepEqual(boxes[1].boxes[0].matrix, identity, 'correct matrix');
     check_trak(boxes[1].boxes[1], 'video');
