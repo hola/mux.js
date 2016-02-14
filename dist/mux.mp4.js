@@ -730,7 +730,7 @@ Chunk_parser.prototype.seek = function(time, use_ss){
 };
 
 var Buffer = function(){
-    this._buff = new Uint8Array(8*1048576);
+    this._buff = new Uint8Array(3*1048576);
     this.b_pos = 0;
     this.b_size = 0;
     this.pos = 0;
@@ -763,6 +763,7 @@ Buffer.prototype.push = function(chunk){
         }
         this._buff.set(_newbuff);
         this.b_size = _newbuff.length;
+        _newbuff = null;
         this.b_pos = Math.min(this.b_pos, this.pos);
     }
     else if (this.pos==this.b_pos+this.b_size)
@@ -791,6 +792,17 @@ var MP4ParserStream = function(opt){
 };
 MP4ParserStream.prototype = new window.muxjs.Stream();
 MP4ParserStream.prototype.constructor = MP4ParserStream;
+MP4ParserStream.prototype.get_tl = function(id){
+    if (!this.metadata.h_parsed)
+        throw new Error('No metadata information for time map');
+    var t_i = this.c_parser.s_info.filter(function(e){ return e.id==id; });
+    if (!t_i.length)
+        throw new Error('No track information for time map');
+    return {
+        offset: t_i[0].s_off.slice(0),
+        time: t_i[0].s_time.map(function(e){ return e/t_i[0].ts; }),
+    };
+};
 MP4ParserStream.prototype.push = function(chunk){
     this.buffer.push(chunk);
     var opt = {
@@ -977,6 +989,7 @@ MP4BuilderStream.prototype.push = function(packet){
         sample.flags = {isNonSyncSample: 0};
         sample.compositionTimeOffset = sample.pts-sample.dts;
     }
+    packet.data = null;
     this.tracks[id].samples.push(sample);
 };
 MP4BuilderStream.prototype.flush = function(){
@@ -1013,27 +1026,29 @@ MP4BuilderStream.prototype.flush = function(){
     }
     for (var id in this.tracks)
     {
-        moof = [];
-        mdat = [];
-        seg_sz = 0;
-        this.tracks[id].samples.forEach(function(sample){
-            moof.push(muxjs.mp4.moof(++_this.tracks[id].seqno, [{
-               id: id,
-               baseMediaDecodeTime: sample.dts,
-               samples: [sample],
-               type: 'audio', // XXX pavelki: hack to skip sdtp generation
-            }], _this.options));
-            mdat.push(muxjs.mp4.mdat(sample.data));
-            seg_sz += moof[moof.length-1].length+mdat[mdat.length-1].length;
+        var track = this.tracks[id];
+        if (!track.samples.length)
+            continue;
+        seg_sz = track.samples.reduce(function(a, b){
+            return a+b.data.length; }, 0);
+        moof = muxjs.mp4.moof(++track.seqno, [{
+            id: id,
+            baseMediaDecodeTime: track.samples[0].dts,
+            samples: track.samples,
+            type: 'audio', // XXX pavelki: hack to skip sdtp generation
+        }], _this.options);
+        var segment = new Uint8Array(8+seg_sz+moof.length);
+        var sd = new Uint8Array(seg_sz);
+        var offset = 0;
+        track.samples.forEach(function(sample){
+            sd.set(sample.data, offset);
+            offset += sample.data.length;
+            sample.data = null;
         });
-        var segment = new Uint8Array(seg_sz), pos = 0;
-        for (var i=0; i<moof.length; i++)
-        {
-            segment.set(moof[i], pos);
-            pos += moof[i].length;
-            segment.set(mdat[i], pos);
-            pos += mdat[i].length;
-        }
+        mdat = muxjs.mp4.mdat(sd);
+        segment.set(moof);
+        segment.set(mdat, moof.length);
+        sd = mdat = moof = null;
         this.tracks[id].sc += this.tracks[id].samples.length;
         this.trigger('data', {id: id, data: segment, sc: this.tracks[id].sc});
         this.tracks[id].samples = [];
@@ -3229,6 +3244,7 @@ Transmuxer = function(options) {
     elementaryStream
       .pipe(mp4BuilderStream);
     this.seek = function(pos, ss){ return elementaryStream.seek(pos, ss); };
+    this.get_tl = function(id){ return elementaryStream.get_tl(id); };
     this.appendBuffer = function(buf){
         return elementaryStream.push(new Uint8Array(buf)); };
   }
