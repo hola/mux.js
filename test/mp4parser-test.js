@@ -323,8 +323,8 @@ test('parsing progressive MP4', function(){
     strictEqual(res[0].type, 'metadata', 'parsed metadata');
     strictEqual(res[0].tracks[0].type, 'video', 'identified video track');
     strictEqual(res[0].tracks[0].duration, 360000, 'correct video duration');
-    strictEqual(res[0].tracks[0].width, 320, 'correct video width');
-    strictEqual(res[0].tracks[0].height, 240, 'correct video height');
+    strictEqual(res[0].tracks[0].track_width, 320, 'correct video width');
+    strictEqual(res[0].tracks[0].track_height, 240, 'correct video height');
     strictEqual(res[0].tracks[0].bitrate, 171836, 'correct video bitrate');
     strictEqual(res[0].tracks[1].bitrate, 130048, 'correct audio bitrate');
     strictEqual(res[0].tracks[0].timelineStartInfo.baseMediaDecodeTime, 0,
@@ -354,8 +354,8 @@ test('parsing non-progressive MP4', function(){
     strictEqual(res[0].type, 'metadata', 'parsed metadata');
     strictEqual(res[0].tracks[0].type, 'video', 'identified video track');
     strictEqual(res[0].tracks[0].duration, 477000, 'correct video duration');
-    strictEqual(res[0].tracks[0].width, 176, 'correct video width');
-    strictEqual(res[0].tracks[0].height, 144, 'correct video height');
+    strictEqual(res[0].tracks[0].track_width, 176, 'correct video width');
+    strictEqual(res[0].tracks[0].track_height, 144, 'correct video height');
     strictEqual(res[0].tracks[0].timelineStartInfo.baseMediaDecodeTime, 0,
         'correct track start time');
     strictEqual(res[0].tracks.length, 1, 'correct number of tracks');
@@ -534,15 +534,51 @@ test('full pipeline test', function(){
         deepEqual(box.boxes[1].boxes[2].flags, type=='video' ?
             new Uint8Array([0, 15, 1]) : new Uint8Array([0, 3, 1]),
             'correct trun flags');
-        strictEqual(box.boxes[1].boxes[2].samples.length, type=='video'?
-            60 : 189, 'correct number of samples');
+        strictEqual(box.boxes[1].boxes[2].samples.length, 1,
+            'correct number of samples');
     }
     ok(true, 'does not throw');
-    equal(res.length, 3, 'correct fragment');
+    equal(res.length, 5, 'correct fragment');
     deepEqual(boxes.slice(0, 2).map(e=>e.map(x=>x.type)), [['ftyp', 'moov'],
         ['ftyp', 'moov']], 'correct init sequence');
     deepEqual(boxes.slice(0,4).map(e=>e.map(x=>x.size)), [[20, 689],
-        [20, 604], [1060, 85926], [1612, 65379]], 'correct frame sizes');
+        [20, 604], [116, 15122, 116, 1084, 116, 500, 116, 302, 116, 264, 116,
+        1150, 116, 1344, 116, 2065, 116, 314, 116, 2016, 116, 340, 116, 2503,
+        116, 327, 116, 2569, 116, 468, 116, 2681, 116, 493, 116, 2521, 116,
+        387, 116, 2834, 116, 447, 116, 2905, 116, 592, 116, 3199, 116, 677,
+        116, 3629, 116, 715, 116, 3278, 116, 562, 116, 3266, 116, 429, 116,
+        2968, 116, 291, 116, 2856, 116, 257, 116, 3129, 116, 257, 116, 2896,
+        116, 171, 116, 226, 116, 2876, 116, 121, 116, 179, 116, 1960, 116,
+        994, 116, 2558, 116, 78, 116, 141, 116, 1764, 116, 502, 116, 1171,
+        116, 568, 116, 368, 116, 453, 116, 132, 116, 52, 116, 69, 116, 209,
+        116, 91, 116, 78], [108, 44, 108, 894, 108, 465, 108, 413, 108, 388,
+        108, 376, 108, 385, 108, 377, 108, 375, 108, 372, 108, 374, 108, 366,
+        108, 372, 108, 366, 108, 346, 108, 356, 108, 364, 108, 359, 108, 349,
+        108, 334, 108, 357, 108, 346, 108, 359, 108, 356, 108, 351, 108, 341,
+        108, 357, 108, 362, 108, 351, 108, 355, 108, 357, 108, 349, 108, 347,
+        108, 374, 108, 344, 108, 349, 108, 346, 108, 340, 108, 345, 108, 362,
+        108, 347, 108, 355, 108, 357, 108, 365, 108, 345, 108, 347, 108, 335,
+        108, 343, 108, 346, 108, 349, 108, 360, 108, 348, 108, 375, 108, 348,
+        108, 355, 108, 351, 108, 347, 108, 339, 108, 346, 108, 335, 108, 341,
+        108, 359, 108, 340, 108, 358, 108, 352, 108, 366, 108, 339, 108, 351,
+        108, 339, 108, 350, 108, 338, 108, 361, 108, 339, 108, 347, 108, 343,
+        108, 353, 108, 352, 108, 357, 108, 359, 108, 362, 108, 349, 108, 338,
+        108, 334, 108, 342, 108, 346, 108, 348, 108, 344, 108, 351, 108, 343,
+        108, 347, 108, 343, 108, 362, 108, 346, 108, 356, 108, 350, 108, 349,
+        108, 363, 108, 358, 108, 360, 108, 360, 108, 356, 108, 356, 108, 346,
+        108, 358, 108, 357, 108, 359, 108, 352, 108, 351, 108, 348, 108, 360,
+        108, 353, 108, 360, 108, 336, 108, 350, 108, 365, 108, 352, 108, 336,
+        108, 354, 108, 348, 108, 354, 108, 354, 108, 344, 108, 355, 108, 344,
+        108, 350, 108, 352, 108, 350, 108, 354, 108, 335, 108, 360, 108, 360,
+        108, 363, 108, 354, 108, 348, 108, 358, 108, 354, 108, 356, 108, 343,
+        108, 351, 108, 362, 108, 345, 108, 342, 108, 336, 108, 348, 108, 353,
+        108, 357, 108, 340, 108, 351, 108, 359, 108, 335, 108, 351, 108, 341,
+        108, 339, 108, 350, 108, 352, 108, 350, 108, 338, 108, 344, 108, 342,
+        108, 349, 108, 348, 108, 344, 108, 333, 108, 344, 108, 366, 108, 356,
+        108, 338, 108, 359, 108, 371, 108, 358, 108, 358, 108, 345, 108, 325,
+        108, 353, 108, 343, 108, 344, 108, 339, 108, 356, 108, 373, 108, 352,
+        108, 342, 108, 352, 108, 342, 108, 350, 108, 364, 108, 338, 108, 364,
+        108, 352, 108, 343]], 'correct frame sizes');
     strictEqual(boxes[0][1].boxes[0].type, 'mvhd', 'there is movie header');
     strictEqual(boxes[0][1].boxes[0].duration, 360000, 'correct duration');
     strictEqual(boxes[0][1].boxes[0].timescale, 90000, 'correct timescale');

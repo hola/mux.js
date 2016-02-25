@@ -244,7 +244,7 @@ function get_unpack(view, ptr, cnt, tbl){
 Box_parser.prototype.ftyp = function(opt){
     opt.branch.major_brand = int_to_str(opt.view.getUint32(opt.ptr));
     opt.branch.minor_version = opt.view.getUint32(opt.ptr+4);
-    opt.branch.compatible = [];
+    opt.branch.compatible = [opt.branch.major_brand];
     for (var i=8; i<opt.size; i+=4)
         opt.branch.compatible.push(int_to_str(opt.view.getUint32(opt.ptr+i)));
 };
@@ -506,6 +506,7 @@ Chunk_parser.prototype.process = function(opt){
     var event = {
         type: 'metadata',
         tracks: [],
+        brands: opt.root.compatible,
         matrix: opt.root.movie_box.mv_hdr.matrix,
         start_hdr_sz: opt.root.start_hdr_sz,
         end_hdr_sz: opt.root.end_hdr_sz,
@@ -568,9 +569,9 @@ Chunk_parser.prototype.process = function(opt){
                 tr.media_box.md_hdr.duration :
                 Math.floor(tr.media_box.md_hdr.duration*90000/elm.ts),
             matrix: tr.tk_hdr.matrix,
-            width: tr.tk_hdr.width,
+            track_width: tr.tk_hdr.width,
             samplerate: elm.type=='soun' ? elm.ts : 90000,
-            height: tr.tk_hdr.height,
+            track_height: tr.tk_hdr.height,
         };
         var dr = elm.s_list[1];
         if (elm.type=='soun')
@@ -1033,29 +1034,29 @@ MP4BuilderStream.prototype.flush = function(){
     }
     for (var id in this.tracks)
     {
-        var track = this.tracks[id];
-        if (!track.samples.length)
-            continue;
-        seg_sz = track.samples.reduce(function(a, b){
-            return a+b.data.length; }, 0);
-        moof = muxjs.mp4.moof(++track.seqno, [{
-            id: id,
-            baseMediaDecodeTime: track.samples[0].dts,
-            samples: track.samples,
-            type: 'audio', // XXX pavelki: hack to skip sdtp generation
-        }], _this.options);
-        var segment = new Uint8Array(8+seg_sz+moof.length);
-        var sd = new Uint8Array(seg_sz);
-        var offset = 0;
-        track.samples.forEach(function(sample){
-            sd.set(sample.data, offset);
-            offset += sample.data.length;
-            sample.data = null;
+        moof = [];
+        mdat = [];
+        seg_sz = 0;
+        this.tracks[id].samples.forEach(function(sample){
+            moof.push(muxjs.mp4.moof(++_this.tracks[id].seqno, [{
+               id: id,
+               baseMediaDecodeTime: sample.dts,
+               samples: [sample],
+               type: 'audio', // XXX pavelki: hack to skip sdtp generation
+            }], _this.options));
+            mdat.push(muxjs.mp4.mdat(sample.data));
+            seg_sz += moof[moof.length-1].length+mdat[mdat.length-1].length;
         });
-        mdat = muxjs.mp4.mdat(sd);
-        segment.set(moof);
-        segment.set(mdat, moof.length);
-        sd = mdat = moof = null;
+        var segment = new Uint8Array(seg_sz), pos = 0;
+        for (var i=0; i<moof.length; i++)
+        {
+            segment.set(moof[i], pos);
+            pos += moof[i].length;
+            moof[i] = null;
+            segment.set(mdat[i], pos);
+            pos += mdat[i].length;
+            mdat[i] = null;
+        }
         this.tracks[id].sc += this.tracks[id].samples.length;
         this.trigger('data', {id: id, data: segment, sc: this.tracks[id].sc});
         this.tracks[id].samples = [];
