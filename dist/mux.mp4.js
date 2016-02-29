@@ -134,7 +134,7 @@ var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'hdlr', 'stsd', 'esds', 'stts', 'stss', 'ctts', 'stsc', 'stsz', 'stco',
     'esds', 'elst'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
-    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd'];
+    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
@@ -518,6 +518,8 @@ Chunk_parser.prototype.process = function(opt){
     this.s_info = [];
     this.s_p = [];
     opt.root.movie_box.track_info.forEach(function(tr){
+        if (['vide', 'soun'].indexOf(tr.media_box.handler)<0)
+            return;
         var elm = {
             id: tr.tk_hdr.track_id,
             ts: tr.media_box.md_hdr.time_scale,
