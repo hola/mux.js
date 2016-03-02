@@ -132,9 +132,9 @@ function getInt64(view, ptr){
 var sample_type={vide: 'video', soun: 'audio'};
 var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'hdlr', 'stsd', 'esds', 'stts', 'stss', 'ctts', 'stsc', 'stsz', 'stco',
-    'esds', 'elst'];
+    'esds', 'elst', 'nmhd'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
-    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref'];
+    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
@@ -364,8 +364,8 @@ Box_parser.prototype._parse_esds = function(opt, elm){
         {
         case 3: // ES_DescrTag
             elm.es_id = view.getUint16(ptr);
-            var flags = view.getUint16(ptr+3);
-            ptr += 3+(flags&1 ? 2 : 0)+(flags&4 ? 2 : 0);
+            var flags = view.getUint8(ptr+2);
+            ptr += 3+(flags>>6&2)+(flags>>4&2);
             break;
         case 4: // DecoderConfigDescrTag
             elm.obj_t = view.getUint8(ptr);
@@ -428,6 +428,9 @@ Box_parser.prototype.stsd = function(opt){
                 elm.compressor += String.fromCharCode();
             }
             elm.depth = view.getUint16(opt.ptr+74);
+            var skip_boxes = [0x63616C70, 0x70617370]; // calp & pasp
+            while (skip_boxes.indexOf(view.getUint32(opt.ptr+82))>0)
+                opt.ptr += view.getUint32(opt.ptr+78);
             if (view.getUint32(opt.ptr+82)==0x61766343) // avcC
             {
                 elm.avcc = {};
