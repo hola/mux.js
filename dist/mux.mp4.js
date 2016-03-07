@@ -134,7 +134,7 @@ var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'hdlr', 'stsd', 'esds', 'stts', 'stss', 'ctts', 'stsc', 'stsz', 'stco',
     'esds', 'elst', 'nmhd'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
-    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd'];
+    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
