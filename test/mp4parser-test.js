@@ -534,15 +534,15 @@ test('full pipeline test', function(){
         deepEqual(box.boxes[1].boxes[2].flags, type=='video' ?
             new Uint8Array([0, 15, 1]) : new Uint8Array([0, 3, 1]),
             'correct trun flags');
-        strictEqual(box.boxes[1].boxes[2].samples.length, type=='video' ?
-            60: 189, 'correct number of samples');
+        strictEqual(box.boxes[1].boxes[2].samples.length, 10,
+            'correct number of samples');
     }
     ok(true, 'does not throw');
-    equal(res.length, 3, 'correct fragment');
+    equal(res.length, 26, 'correct fragment');
     deepEqual(boxes.slice(0, 2).map(e=>e.map(x=>x.type)), [['ftyp', 'moov'],
         ['ftyp', 'moov']], 'correct init sequence');
     deepEqual(boxes.slice(0,4).map(e=>e.map(x=>x.size)), [[20, 689],
-        [20, 604], [1060, 85926], [1612, 65379]], 'correct frame sizes');
+        [20, 604], [260, 24089], [260, 15051]], 'correct frame sizes');
     strictEqual(boxes[0][1].boxes[0].type, 'mvhd', 'there is movie header');
     strictEqual(boxes[0][1].boxes[0].duration, 360000, 'correct duration');
     strictEqual(boxes[0][1].boxes[0].timescale, 90000, 'correct timescale');
@@ -550,7 +550,7 @@ test('full pipeline test', function(){
     check_trak(boxes[0][1].boxes[1], 'video');
     check_trak(boxes[1][1].boxes[1], 'audio');
     check_moof(boxes[2][0], 'video');
-    check_moof(boxes[3][0], 'audio');
+    check_moof(boxes[8][0], 'audio');
 });
 
 })(window, window.muxjs);

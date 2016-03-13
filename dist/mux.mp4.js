@@ -623,6 +623,7 @@ Chunk_parser.prototype.parse = function(opt){
     var b_start = opt.buffer.b_pos;
     var b_end = opt.buffer.b_size+b_start;
     var pc = -1, max_dcd = 0, i;
+    var v_fin = false;
     while (pc)
     {
         pc = 0;
@@ -632,6 +633,8 @@ Chunk_parser.prototype.parse = function(opt){
             var pos = this.s_info[i].s_off[sn];
             var sz = this.s_info[i].s_sz[sn];
             var time = this.s_info[i].s_time;
+            if (this.v_idx&&time>this.s_info[this.v_idx].s_time&&!v_fin)
+                continue; // don't allow audio to decode further than video
             if (pos>=b_start && pos+sz<=b_end)
             {
                 this.s_p[i].s++;
@@ -661,6 +664,8 @@ Chunk_parser.prototype.parse = function(opt){
                 opt.stream.trigger('data', sample);
                 max_dcd = pos+sz-b_start;
             }
+            else if (pos+sz>b_end&&i==this.v_idx)
+                v_fin = true;
         }
     }
     if (max_dcd)
@@ -1016,7 +1021,7 @@ MP4BuilderStream.prototype.push = function(packet){
         sample.duration = Math.floor(sample.duration*scale);
         sample.pts = Math.floor(sample.pts*scale);
         sample.dts = Math.floor(sample.dts*scale);
-        sample.flags = {isNonSyncSample: +!packet.synced};
+        sample.flags = {hasRedundancy: 2*packet.synced};
         sample.compositionTimeOffset = sample.pts-sample.dts;
     }
     packet.data = null;
