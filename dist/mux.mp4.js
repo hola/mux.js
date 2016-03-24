@@ -758,8 +758,11 @@ Chunk_parser.prototype.seek = function(time, use_ss){
             for (sn=res_sn; sn<l+10; sn++)
             {
                 m_time = elm.s_time[sn]+(elm.s_ctts[sn]|0);
-                if (m_time > (elm.s_cslg.min_ctts|0) && m_time<tt)
+                if (m_time > ((elm.s_cslg&&elm.s_cslg.min_ctts)|0) &&
+                    m_time<tt)
+                {
                     tt = m_time;
+                }
             }
         }
         return {sn: res_sn, min_t: tt/elm.ts};
@@ -1155,11 +1158,11 @@ window.muxjs.MP4BuilderStream = MP4BuilderStream;
 (function(window, muxjs, undefined) {
 'use strict';
 
-var box, dinf, esds, ftyp, edts, elst, mdat, mfhd, minf, moof, moov, mvex,
-    mvhd, trak, tkhd, mdia, mdhd, hdlr, sdtp, stbl, stsd, styp, traf, trex,
-    trun, types, MAJOR_BRAND, MINOR_VERSION, AVC1_BRAND, VIDEO_HDLR,
-    AUDIO_HDLR, HDLR_TYPES, VMHD, SMHD, DREF, STCO, STSC, STSZ, STTS,
-    Uint8Array, DataView;
+var box, cslg, dinf, esds, ftyp, edts, elst, mdat, mfhd, minf, moof, moov,
+    mvex, mvhd, trak, tkhd, mdia, mdhd, hdlr, sdtp, stbl, stsd, styp, traf,
+    trep, trex, trun, types, MAJOR_BRAND, MINOR_VERSION, AVC1_BRAND,
+    VIDEO_HDLR, AUDIO_HDLR, HDLR_TYPES, VMHD, SMHD, DREF, STCO, STSC, STSZ,
+    STTS, Uint8Array, DataView;
 
 Uint8Array = window.Uint8Array;
 DataView = window.DataView;
@@ -1525,7 +1528,7 @@ mvex = function(tracks) {
 
   while (i--) {
     boxes[i] = trex(tracks[i]);
-    if (tracks[i].cslg.max_cts)
+    if (tracks[i].cslg && tracks[i].cslg.max_cts)
         boxes.push(trep(tracks[i]));
   }
   return box.apply(null, [types.mvex].concat(boxes));
@@ -1923,7 +1926,7 @@ trun = function(track, offset) {
   bytes[0] = +!!was_neg;
   return box(types.trun, new Uint8Array(bytes));
 };
-var fgfdfgd = 0;
+
 muxjs.mp4 = {
   ftyp: ftyp,
   mdat: mdat,

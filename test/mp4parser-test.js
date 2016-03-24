@@ -542,7 +542,7 @@ test('full pipeline test', function(){
     deepEqual(boxes.slice(0, 2).map(e=>e.map(x=>x.type)), [['ftyp', 'moov'],
         ['ftyp', 'moov']], 'correct init sequence');
     deepEqual(boxes.slice(0,4).map(e=>e.map(x=>x.size)), [[20, 689],
-        [20, 604], [260, 24089], [260, 15051]], 'correct frame sizes');
+        [20, 604], [282, 24089], [282, 15051]], 'correct frame sizes');
     strictEqual(boxes[0][1].boxes[0].type, 'mvhd', 'there is movie header');
     strictEqual(boxes[0][1].boxes[0].duration, 360000, 'correct duration');
     strictEqual(boxes[0][1].boxes[0].timescale, 90000, 'correct timescale');
