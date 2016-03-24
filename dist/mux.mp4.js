@@ -131,10 +131,10 @@ function getInt64(view, ptr){
 }
 var sample_type={vide: 'video', soun: 'audio'};
 var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
-    'hdlr', 'stsd', 'esds', 'stts', 'stss', 'ctts', 'stsc', 'stsz', 'stco',
-    'esds', 'elst', 'nmhd'];
+    'hdlr', 'stsd', 'esds', 'stts', 'stps', 'stss', 'ctts', 'stsc', 'stsz',
+    'stco', 'esds', 'elst', 'nmhd', 'cslg', 'sdtp'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
-    'sdtp', 'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC'];
+    'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
@@ -233,14 +233,6 @@ function get_table(view, ptr, cnt, tbl){
     for (var i=0; i<cnt; i++)
         tbl[i] = view.getUint32(ptr+i*4);
 }
-function get_unpack(view, ptr, cnt, tbl){
-    for (var i=0; i<cnt; i++)
-    {
-        var u_cnt = view.getUint32(ptr+i*8), data = view.getUint32(ptr+i*8+4);
-        for (var j=0; j<u_cnt; j++)
-            tbl.push(data);
-    }
-}
 Box_parser.prototype.ftyp = function(opt){
     opt.branch.major_brand = int_to_str(opt.view.getUint32(opt.ptr));
     opt.branch.minor_version = opt.view.getUint32(opt.ptr+4);
@@ -299,26 +291,29 @@ Box_parser.prototype.mdhd = function(opt){
 };
 Box_parser.prototype.elst = function(opt){
     var view = opt.view, ptr = opt.ptr+4;
-    var count = opt.view.getUint32(opt.ptr);
+    var count = view.getUint32(opt.ptr);
     opt.branch.list = [];
     for (var i=0; i<count; ptr += 4, i++)
     {
         var elm = {};
-        if (opt.ver)
-        {
-            elm.segment_duration = getUint64(view, ptr);
-            elm.media_time = getInt64(view, ptr+8);
-            ptr += 16;
-        }
-        else
-        {
-            elm.segment_duration = view.getUint32(ptr);
-            elm.media_time = view.getInt32(ptr+4);
-            ptr += 8;
-        }
+        elm.segment_duration = opt.ver ?
+            getUint64(view, ptr) : view.getUint32(ptr);
+        elm.media_time = opt.ver ?
+            getInt64(view, ptr+8) : view.getInt32(ptr+4);
+        ptr += opt.ver ? 16 : 8;
         elm.media_rate = view.getInt16(ptr);
         opt.branch.list.push(elm);
     }
+};
+Box_parser.prototype.cslg = function(opt){
+    var view = opt.view, ptr = opt.ptr;
+    opt.branch.cslg = {
+        ctts_shift: view.getInt32(ptr),
+        min_ctts: view.getInt32(ptr+4),
+        max_ctts: view.getInt32(ptr+8),
+        min_cts: view.getInt32(ptr+12),
+        max_cts: view.getInt32(ptr+16),
+    };
 };
 Box_parser.prototype.hdlr = function(opt){
     opt.branch.handler = int_to_str(opt.view.getUint32(opt.ptr+4)); };
@@ -460,12 +455,26 @@ Box_parser.prototype.stsd = function(opt){
     opt.size = 0;
 };
 Box_parser.prototype.stts = function(opt){
-    get_unpack(opt.view, opt.ptr+4, opt.view.getUint32(opt.ptr),
-        opt.branch.dtts = []);
+    var cnt = opt.view.getUint32(opt.ptr), ptr = opt.ptr+4;
+    opt.branch.dtts = [];
+    for (var i=0; i<cnt; i++)
+    {
+        var u_cnt = opt.view.getUint32(opt.ptr+4+i*8);
+        var data = opt.view.getUint32(ptr+i*8+4);
+        for (var j=0; j<u_cnt; j++)
+             opt.branch.dtts.push(data);
+    }
 };
 Box_parser.prototype.ctts = function(opt){
-    get_unpack(opt.view, opt.ptr+4, opt.view.getUint32(opt.ptr),
-        opt.branch.ctts = []);
+    var cnt = opt.view.getUint32(opt.ptr), ptr = opt.ptr+4;
+    opt.branch.ctts = [];
+    for (var i=0; i<cnt; i++)
+    {
+        var u_cnt = opt.view.getUint32(ptr+i*8);
+        var data = opt.view.getInt32(ptr+i*8+4);
+        for (var j=0; j<u_cnt; j++)
+            opt.branch.ctts.push(data);
+    }
 };
 Box_parser.prototype.stsc = function(opt){
     var count = opt.view.getUint32(opt.ptr);
@@ -484,6 +493,23 @@ Box_parser.prototype.stsc = function(opt){
 Box_parser.prototype.stss = function(opt){
     get_table(opt.view, opt.ptr+4, opt.view.getUint32(opt.ptr),
         opt.branch.s_sync = []);
+};
+Box_parser.prototype.stps = function(opt){
+    get_table(opt.view, opt.ptr+4, opt.view.getUint32(opt.ptr),
+        opt.branch.s_psync = []);
+};
+Box_parser.prototype.sdtp = function(opt){
+    opt.branch.s_dep = [];
+    for (var i=0; i<opt.size; i++)
+    {
+        var bt = opt.view.getUint8(opt.ptr+i);
+        opt.branch.s_dep[i] = {
+            red: bt&3,
+            is_dep: bt>>2&3,
+            dep: bt>>4&3,
+            lead: bt>>6&3,
+        };
+    }
 };
 Box_parser.prototype.stsz = function(opt){
     opt.branch.s_sz = opt.view.getUint32(opt.ptr);
@@ -531,8 +557,11 @@ Chunk_parser.prototype.process = function(opt){
             s_time: [],
             s_dri: [],
             s_sync: tr.media_box.media_info.sample_table.s_sync||[],
+            s_psync: tr.media_box.media_info.sample_table.s_psync||[],
             s_sz: tr.media_box.media_info.sample_table.s_sz,
+            s_dep: tr.media_box.media_info.sample_table.s_dep||[],
             s_ctts: tr.media_box.media_info.sample_table.ctts||[],
+            s_cslg: tr.media_box.media_info.sample_table.cslg||{},
             s_list: tr.media_box.media_info.sample_table.list,
         };
         if (tr.edit_list && tr.edit_list.list.length)
@@ -567,6 +596,7 @@ Chunk_parser.prototype.process = function(opt){
             id: elm.id,
             type: sample_type[elm.type],
             edit_list: elm.elst,
+            cslg: elm.s_cslg,
             dr: dr,
             timelineStartInfo: {baseMediaDecodeTime: 0},
             bitrate: Math.floor(elm.s_sz.reduce(function(a, b){ return a+b; })*
@@ -613,6 +643,11 @@ Chunk_parser.prototype.process = function(opt){
                     opt.root.movie_box.mv_hdr.time_scale);
             });
         }
+        if (event_elm.cslg)
+        {
+            for (var k in event_elm.cslg)
+                event_elm.cslg[k] = Math.floor(event_elm.cslg[k]*90000/elm.ts);
+        }
         event.tracks.push(event_elm);
     });
     opt.stream.trigger('data', event);
@@ -643,10 +678,8 @@ Chunk_parser.prototype.parse = function(opt){
                 sample.type = sample_type[this.s_info[i].type];
                 sample.dts = time[sn];
                 sample.pts = sample.dts+(this.s_info[i].s_ctts[sn]||0);
-                if (sn==time.length-1)
-                    sample.duration = time[sn]-time[sn-1];
-                else
-                    sample.duration = time[sn+1]-time[sn];
+                sample.duration = sn==time.length-1 ?
+                    time[sn]-time[sn-1] : time[sn+1]-time[sn];
                 sample.size = sz;
                 this.s_p[i].max_t = sample.dts/this.s_info[i].ts;
                 sample.data = opt.buffer._buff.subarray(pos-b_start,
@@ -656,6 +689,7 @@ Chunk_parser.prototype.parse = function(opt){
                 sample.synced = !this.s_info[i].s_sync.length||
                     this.s_info[i].s_sync.indexOf(sn+1)>-1;
                 sample.sn = sn;
+                sample.dep = this.s_info[i].s_dep[sn];
                 if (this.s_info[i].type=='vide'&&this.break_on_sync&&sn&&
                     !(sn%this.frag_size))
                 {
@@ -723,7 +757,8 @@ Chunk_parser.prototype.seek = function(time, use_ss){
             }
             for (sn=res_sn; sn<l+10; sn++)
             {
-                if ((m_time = elm.s_time[sn]+(elm.s_ctts[sn]|0))<tt)
+                m_time = elm.s_time[sn]+(elm.s_ctts[sn]|0);
+                if (m_time > (elm.s_cslg.min_ctts|0) && m_time<tt)
                     tt = m_time;
             }
         }
@@ -773,7 +808,7 @@ Buffer.prototype.push = function(chunk){
     var c_len = chunk.length;
     if (c_len+this.b_size>this._buff.length)
     {
-        var _newbuff = new Uint8Array(2*this._buff.length);
+        _newbuff = new Uint8Array(2*this._buff.length);
         _newbuff.set(this._buff);
         this._buff = _newbuff;
     }
@@ -1000,14 +1035,11 @@ var MP4BuilderStream = function(opt){
 MP4BuilderStream.prototype = new window.muxjs.Stream();
 MP4BuilderStream.prototype.constructor = MP4BuilderStream;
 MP4BuilderStream.prototype.push = function(packet){
-    var sample;
     if (packet.type=='metadata')
-    {
-        this.metadata = packet;
-        return;
-    }
+        return void (this.metadata = packet);
     var id = packet.trackId;
-    this.tracks[id] = this.tracks[id]||{samples: [], seqno: 0, sc: 0};
+    this.tracks[id] = this.tracks[id]||{samples: [], seqno: 0, sc: 0,
+        type: packet.type};
     var sample = {
         duration: packet.duration,
         size: packet.size,
@@ -1021,7 +1053,12 @@ MP4BuilderStream.prototype.push = function(packet){
         sample.duration = Math.floor(sample.duration*scale);
         sample.pts = Math.floor(sample.pts*scale);
         sample.dts = Math.floor(sample.dts*scale);
-        sample.flags = {hasRedundancy: 2*packet.synced};
+        sample.flags = {
+            dependsOn: (sample.dep&&sample.dep.dep)|0,
+            isDependedOn: (sample.dep&&sample.dep.is_dep)|0,
+            hasRedundancy: ((sample.dep&&sample.dep.red)|0) || 2*packet.synced,
+            isLeading: (sample.dep&&sample.dep.lead)|0,
+        };
         sample.compositionTimeOffset = sample.pts-sample.dts;
     }
     packet.data = null;
@@ -1074,7 +1111,7 @@ MP4BuilderStream.prototype.flush = function(){
                 id: id,
                 baseMediaDecodeTime: seg_slice[0].dts,
                 samples: seg_slice,
-                type: 'audio', // XXX pavelki: hack to skip sdtp generation
+                type: track.type,
             }], _this.options);
             var segment = new Uint8Array(8+seg_sz+moof.length);
             var sd = new Uint8Array(seg_sz);
@@ -1134,6 +1171,7 @@ DataView = window.DataView;
     avc1: [], // codingname
     avcC: [],
     btrt: [],
+    cslg: [],
     dinf: [],
     dref: [],
     edts: [],
@@ -1165,6 +1203,7 @@ DataView = window.DataView;
     traf: [],
     trak: [],
     trun: [],
+    trep: [],
     trex: [],
     tkhd: [],
     vmhd: []
@@ -1297,6 +1336,36 @@ box = function(type) {
     size += payload[i].byteLength;
   }
   return result;
+};
+
+cslg = function(cslg) {
+  var obj = {};
+  for (var k in cslg)
+      obj[k] = cslg[k]>>>0;
+  return box(types.cslg, new Uint8Array([
+    0x00, // version
+    0x00, 0x00, 0x00, // flags
+    (obj.ctts_shift >>> 24) & 0xFF,
+    (obj.ctts_shift >>> 16) & 0xFF,
+    (obj.ctts_shift >>>  8) & 0xFF,
+    obj.ctts_shift & 0xFF,
+    (obj.min_ctts >>> 24) & 0xFF,
+    (obj.min_ctts >>> 16) & 0xFF,
+    (obj.min_ctts >>>  8) & 0xFF,
+    obj.min_ctts & 0xFF,
+    (obj.max_ctts >>> 24) & 0xFF,
+    (obj.max_ctts >>> 16) & 0xFF,
+    (obj.max_ctts >>>  8) & 0xFF,
+    obj.max_ctts & 0xFF,
+    (obj.min_cts >>> 24) & 0xFF,
+    (obj.min_cts >>> 16) & 0xFF,
+    (obj.min_cts >>>  8) & 0xFF,
+    obj.min_cts & 0xFF,
+    (obj.max_cts >>> 24) & 0xFF,
+    (obj.max_cts >>> 16) & 0xFF,
+    (obj.max_cts >>>  8) & 0xFF,
+    obj.max_cts & 0xFF,
+  ]));
 };
 
 dinf = function() {
@@ -1456,6 +1525,8 @@ mvex = function(tracks) {
 
   while (i--) {
     boxes[i] = trex(tracks[i]);
+    if (tracks[i].cslg.max_cts)
+        boxes.push(trep(tracks[i]));
   }
   return box.apply(null, [types.mvex].concat(boxes));
 };
@@ -1509,7 +1580,8 @@ sdtp = function(track) {
   for (i = 0; i < samples.length; i++) {
     flags = samples[i].flags;
 
-    bytes[i + 4] = (flags.dependsOn << 4) |
+    bytes[i + 4] = (flags.isLeading << 6) |
+      (flags.dependsOn << 4) |
       (flags.isDependedOn << 2) |
       (flags.hasRedundancy);
   }
@@ -1762,6 +1834,17 @@ trak = function(track) {
   return box.apply(null, param);
 };
 
+trep = function(track){
+  return box(types.trep, new Uint8Array([
+    0x00, // version 0
+    0x00, 0x00, 0x00, // flags
+    (track.id & 0xFF000000) >> 24,
+    (track.id & 0xFF0000) >> 16,
+    (track.id & 0xFF00) >> 8,
+    (track.id & 0xFF), // track_ID
+  ]), cslg(track.cslg));
+};
+
 trex = function(track) {
   var result = new Uint8Array([
     0x00, // version 0
@@ -1782,7 +1865,6 @@ trex = function(track) {
   if (track.type !== 'video') {
     result[result.length - 1] = 0x00;
   }
-
   return box(types.trex, result);
 };
 
@@ -1791,9 +1873,9 @@ trun = function(track, offset) {
     return ('duration' in sample&&0x1)|('size' in sample&&0x2)|
         ('flags' in sample&&0x4)|('compositionTimeOffset' in sample&&0x8);
   }
-  function trun_header(samples, offset, flags) {
+  function trun_header(samples, offset, flags, ver) {
     return [
-      0x00, // version 0
+      ver,
       0x00,
       flags,
       0x01, // flags
@@ -1812,6 +1894,7 @@ trun = function(track, offset) {
   offset += 20+4*samples.length*((flags>>3&1)+(flags>>2&1)+(flags>>1&1)+
     (flags&1));
   var bytes = trun_header(samples, offset, flags);
+  var was_neg = false;
   for (var i=0; i<samples.length; i++) {
     var sample = samples[i];
     if (flags&1){
@@ -1830,15 +1913,17 @@ trun = function(track, offset) {
         sample.flags.degradationPriority&0xFF); // sample_flags
     }
     if (flags&8){
+      was_neg = was_neg||sample.compositionTimeOffset<0;
       bytes.push(sample.compositionTimeOffset>>24&0xFF,
         sample.compositionTimeOffset>>16&0xFF,
         sample.compositionTimeOffset>>8&0xFF,
         sample.compositionTimeOffset&0xFF); // sample_composition_time_offset
     }
   }
+  bytes[0] = +!!was_neg;
   return box(types.trun, new Uint8Array(bytes));
 };
-
+var fgfdfgd = 0;
 muxjs.mp4 = {
   ftyp: ftyp,
   mdat: mdat,
