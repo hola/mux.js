@@ -134,7 +134,7 @@ var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'hdlr', 'stsd', 'esds', 'stts', 'stps', 'stss', 'ctts', 'stsc', 'stsz',
     'stco', 'esds', 'elst', 'nmhd', 'cslg', 'sdtp'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
-    'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC'];
+    'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC', 'hmhd'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
@@ -1122,7 +1122,6 @@ MP4BuilderStream.prototype.flush = function(){
             seg_slice.forEach(function(sample){
                 sd.set(sample.data, offset);
                 offset += sample.data.length;
-                sample.data = null;
             });
             mdat = muxjs.mp4.mdat(sd);
             segment.set(moof);
