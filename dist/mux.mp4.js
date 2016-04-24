@@ -133,7 +133,7 @@ var sample_type={vide: 'video', soun: 'audio'};
 var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'hdlr', 'stsd', 'esds', 'stts', 'stps', 'stss', 'ctts', 'stsc', 'stsz',
     'stco', 'esds', 'elst', 'nmhd', 'cslg', 'sdtp'];
-var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp',
+var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp', 'clap',
     'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC', 'hmhd'];
 var containers = {
     meta: {name: 'meta_box'},
@@ -668,8 +668,6 @@ Chunk_parser.prototype.parse = function(opt){
             var pos = this.s_info[i].s_off[sn];
             var sz = this.s_info[i].s_sz[sn];
             var time = this.s_info[i].s_time;
-            if (this.v_idx&&time>this.s_info[this.v_idx].s_time&&!v_fin)
-                continue; // don't allow audio to decode further than video
             if (pos>=b_start && pos+sz<=b_end)
             {
                 this.s_p[i].s++;
