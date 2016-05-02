@@ -527,7 +527,8 @@ Box_parser.prototype.stco = function(opt){
 
 var Chunk_parser = function(opt){
     opt = opt||{};
-    this.break_on_sync = !!opt.no_multi_init;
+    this.break_on_count = opt.break_on_count!=undefined ?
+        opt.break_on_count : true;
     this.frag_size = opt.frag_size||10;
 };
 Chunk_parser.prototype = {};
@@ -684,15 +685,13 @@ Chunk_parser.prototype.parse = function(opt){
                     pos+sz-b_start);
                 sample.dr = this.s_info[i].s_list[this.s_info[i].s_dri[sn]];
                 sample.ts = this.s_info[i].ts;
-                sample.synced = !this.s_info[i].s_sync.length||
+                sample.synced = this.break_on_count ?
+                    !(sn%this.frag_size) : !this.s_info[i].s_sync.length ||
                     this.s_info[i].s_sync.indexOf(sn+1)>-1;
                 sample.sn = sn;
                 sample.dep = this.s_info[i].s_dep[sn];
-                if (this.s_info[i].type=='vide'&&this.break_on_sync&&sn&&
-                    !(sn%this.frag_size))
-                {
+                if (this.s_info[i].type=='vide' && sample.synced)
                     opt.stream.flush();
-                }
                 opt.stream.trigger('data', sample);
                 max_dcd = pos+sz-b_start;
             }
@@ -1049,7 +1048,8 @@ MP4BuilderStream.prototype.push = function(packet){
         data: new Uint8Array(packet.data),
         sn: packet.sn,
     };
-    if (packet.type=='video'){
+    if (packet.type=='video')
+    {
         var scale = 90000/packet.ts;
         sample.duration = Math.floor(sample.duration*scale);
         sample.pts = Math.floor(sample.pts*scale);
@@ -1060,6 +1060,8 @@ MP4BuilderStream.prototype.push = function(packet){
             hasRedundancy: ((sample.dep&&sample.dep.red)|0) || 2*packet.synced,
             isLeading: (sample.dep&&sample.dep.lead)|0,
         };
+        if (!this.options.break_on_count)
+            sample.flags.isNonSyncSample = !packet.synced;
         sample.compositionTimeOffset = sample.pts-sample.dts;
     }
     packet.data = null;
@@ -1067,7 +1069,8 @@ MP4BuilderStream.prototype.push = function(packet){
 };
 MP4BuilderStream.prototype.flush = function(){
     var moof, mdat, seg_sz, _this = this;
-    if (!this.inited){
+    if (!this.inited)
+    {
         // build and emit init segments
         this.inited = true;
         var inits = [];
@@ -1102,34 +1105,30 @@ MP4BuilderStream.prototype.flush = function(){
         var track = this.tracks[id];
         if (!track.samples.length)
             continue;
-        for (var i=0; i<track.samples.length; i+=10)
-        {
-            var seg_slice = track.samples.slice(i, Math.min(i+10,
-                track.samples.length));
-            seg_sz = seg_slice.reduce(function(a, b){
-                return a+b.data.length; }, 0);
-            moof = muxjs.mp4.moof(++track.seqno, [{
-                id: id,
-                baseMediaDecodeTime: seg_slice[0].dts,
-                samples: seg_slice,
-                type: track.type,
-            }], _this.options);
-            var segment = new Uint8Array(8+seg_sz+moof.length);
-            var sd = new Uint8Array(seg_sz);
-            var offset = 0;
-            seg_slice.forEach(function(sample){
-                sd.set(sample.data, offset);
-                offset += sample.data.length;
-            });
-            mdat = muxjs.mp4.mdat(sd);
-            segment.set(moof);
-            segment.set(mdat, moof.length);
-            segment.sn = seg_slice[seg_slice.length-1].sn;
-            sd = mdat = moof = null;
-            this.tracks[id].sc += seg_slice.length;
-            this.trigger('data', {id: id, data: segment,
-                sc: this.tracks[id].sc});
-        }
+        var seg_slice = track.samples;
+        seg_sz = seg_slice.reduce(function(a, b){
+            return a+b.data.length; }, 0);
+        moof = muxjs.mp4.moof(++track.seqno, [{
+            id: id,
+            baseMediaDecodeTime: seg_slice[0].dts,
+            samples: seg_slice,
+            type: track.type,
+        }], _this.options);
+        var segment = new Uint8Array(8+seg_sz+moof.length);
+        var sd = new Uint8Array(seg_sz);
+        var offset = 0;
+        seg_slice.forEach(function(sample){
+            sd.set(sample.data, offset);
+            offset += sample.data.length;
+        });
+        mdat = muxjs.mp4.mdat(sd);
+        segment.set(moof);
+        segment.set(mdat, moof.length);
+        segment.sn = seg_slice[seg_slice.length-1].sn;
+        sd = mdat = moof = null;
+        this.tracks[id].sc += seg_slice.length;
+        this.trigger('data', {id: id, data: segment,
+            sc: this.tracks[id].sc});
         this.tracks[id].samples = [];
     }
     this.trigger('done');
