@@ -901,7 +901,7 @@ MP4ParserStream.prototype.push = function(chunk){
     return this.buffer.pos;
 };
 MP4ParserStream.prototype.seek = function(time, use_ssync){
-    this.flush();
+    this.trigger('data', {type: 'seek'});
     var seek_info = this.c_parser.seek(time, use_ssync);
     this.buffer.pos = seek_info.offset;
     return seek_info;
@@ -1037,6 +1037,12 @@ MP4BuilderStream.prototype.constructor = MP4BuilderStream;
 MP4BuilderStream.prototype.push = function(packet){
     if (packet.type=='metadata')
         return void (this.metadata = packet);
+    if (packet.type=='seek')
+    {
+        for (var id in this.tracks)
+            this.tracks[id].samples = [];
+        return;
+    }
     var id = packet.trackId;
     this.tracks[id] = this.tracks[id]||{samples: [], seqno: 0, sc: 0,
         type: packet.type};
