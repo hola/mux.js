@@ -9,7 +9,7 @@ Feed in `Uint8Array`s of an MPEG-2 transport stream, get out a fragmented MP4:
 
 ```js
 // create a transmuxer:
-var transmuxer = new muxjs.mp2t.Transmuxer(initOptions);
+var transmuxer = new muxjs.mp4.Transmuxer(initOptions);
 // data events signal a new fMP4 segment is ready:
 transmuxer.on('data', function (segment) {
   // Tada! Now you have an MP4 that you could use with Media Source Extensions
@@ -45,3 +45,10 @@ console.log('The major brand of the first box:', parsed[0].majorBrand);
 document.body.appendChild(document.createTextNode(muxjs.textifyMp4(parsed)));
 ```
 The MP4 inspector is used extensively as a debugging tool for the transmuxer. You can see it in action by cloning the project and opening [the debug page](https://github.com/videojs/mux.js/blob/master/debug/index.html) in your browser.
+
+## Building
+If you're using this project in a node-like environment, just
+require() whatever you need. If you'd like to package up a
+distribution to include separately, run `npm run build`. See the
+package.json for other handy scripts if you're thinking about
+contributing.
