@@ -426,7 +426,8 @@ Box_parser.prototype.stsd = function(opt){
                 elm.compressor += String.fromCharCode();
             }
             elm.depth = view.getUint16(opt.ptr+74);
-            var skip_boxes = [0x63616C70, 0x70617370]; // calp & pasp
+            // 'calp', 'pasp' & 'fiel'
+            var skip_boxes = [0x63616C70, 0x70617370, 0x6669656c];
             while (skip_boxes.includes(view.getUint32(opt.ptr+82)))
                 opt.ptr += view.getUint32(opt.ptr+78);
             if (view.getUint32(opt.ptr+82)==0x61766343) // avcC
@@ -821,7 +822,7 @@ Buffer.prototype.advance = function(ptr){
 Buffer.prototype.push = function(chunk){
     var _newbuff;
     var c_len = chunk.length;
-    if (c_len+this.b_size>this._buff.length)
+    while (c_len+this.b_size>this._buff.length)
     {
         _newbuff = new Uint8Array(2*this._buff.length);
         _newbuff.set(this._buff);
@@ -852,6 +853,7 @@ Buffer.prototype.push = function(chunk){
     }
     else if (this.pos==this.b_pos+this.b_size)
     {
+        console.log(this.pos, this.b_pos, this.b_size, c_len);
         this._buff.set(chunk, this.b_size);
         this.b_size += c_len;
     }
