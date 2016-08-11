@@ -853,7 +853,6 @@ Buffer.prototype.push = function(chunk){
     }
     else if (this.pos==this.b_pos+this.b_size)
     {
-        console.log(this.pos, this.b_pos, this.b_size, c_len);
         this._buff.set(chunk, this.b_size);
         this.b_size += c_len;
     }
@@ -1120,7 +1119,12 @@ MP4BuilderStream.prototype.flush = function(){
                 tr.pps = tr.dr.avcc.pps.map(function(e){ return e.nal; });
                 break;
             case 'audio':
-                tr.samplerate = tr.dr.s_rate;
+                if (tr.samplerate!=tr.dr.s_rate)
+                {
+                    tr.duration = Math.floor(tr.duration*tr.dr.s_rate
+                        /tr.samplerate);
+                    tr.samplerate = tr.dr.s_rate;
+                }
                 tr.samplesize = tr.dr.s_size;
                 tr.audioobjecttype = tr.dr.esds.aot;
                 tr.samplingfrequencyindex = tr.dr.esds.freq;
