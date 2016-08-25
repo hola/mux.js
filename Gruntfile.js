@@ -1,3 +1,4 @@
+'use strict';
 module.exports = function(grunt) {
   let pkg = grunt.file.readJSON('package.json');
   let version = pkg.version;
