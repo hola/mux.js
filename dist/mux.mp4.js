@@ -135,7 +135,7 @@ var full_box = ['meta', 'mvhd', 'tkhd', 'mdhd', 'smhd', 'vmhd', 'dref',
     'stco', 'esds', 'elst', 'nmhd', 'cslg', 'sdtp', 'co64'];
 var raw_copy = ['udta', 'smhd', 'vmhd', 'dref', 'iods', 'btrt', 'pasp', 'clap',
     'uuid', 'colr', 'sbgp', 'sgpd', 'gmhd', 'tref', 'nmhd', 'svcC', 'hmhd',
-    'wide'];
+    'wide', 'fiel'];
 var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
@@ -426,8 +426,8 @@ Box_parser.prototype.stsd = function(opt){
                 elm.compressor += String.fromCharCode();
             }
             elm.depth = view.getUint16(opt.ptr+74);
-            // 'calp', 'pasp' & 'fiel'
-            var skip_boxes = [0x63616C70, 0x70617370, 0x6669656c];
+            // 'colr', 'clap', 'pasp' & 'fiel'
+            var skip_boxes = [0x636F6C72, 0x636C6170, 0x70617370, 0x6669656C];
             while (skip_boxes.includes(view.getUint32(opt.ptr+82)))
                 opt.ptr += view.getUint32(opt.ptr+78);
             if (view.getUint32(opt.ptr+82)==0x61766343) // avcC
