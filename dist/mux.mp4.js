@@ -140,6 +140,7 @@ var containers = {
     meta: {name: 'meta_box'},
     trak: {name: 'track_info', multi: 1},
     edts: {name: 'edit_list'},
+    exts: {name: 'edit_list'},
     mdia: {name: 'media_box'},
     minf: {name: 'media_info'},
     dinf: {name: 'data_info'},
