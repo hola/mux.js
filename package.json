@@ -1,6 +1,6 @@
 {
-  "name": "mux.js",
-  "version": "1.0.0-9",
+  "name": "@hola.org/mux.js",
+  "version": "1.0.0-10",
   "description": "A collection of lightweight utilities for inspecting and manipulating video container formats.",
   "repository": {
     "type": "git",
@@ -9,7 +9,12 @@
   "scripts": {
     "test": "karma start test/karma.conf.js --single-run",
     "build": "grunt",
-    "release": "grunt release"
+    "login": "c=`npm c ls`; test \"${c#*@hola}\" != \"$c\" || npm login --scope @hola.org",
+    "prepublish": "npm run build",
+    "release": "run-s login release:*",
+    "release:tag": "git tag v$npm_package_version",
+    "release:publish": "npm publish",
+    "release:pushtags": "git push --tags origin"
   },
   "keywords": [
     "video",
@@ -37,6 +42,7 @@
     "karma-chrome-launcher": "^0.2.0",
     "karma-firefox-launcher": "^0.1.6",
     "karma-qunit": "^0.1.5",
+    "npm-run-all": "^3.1.0",
     "qunitjs": "^1.18.0"
   }
 }
