@@ -77,8 +77,16 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: process.env.TRAVIS ? ['Firefox'] : ['Chrome'],
+    browsers: process.env.TRAVIS ? ['Firefox', 'chrome_travis'] :
+        ['Chrome'],
 
+    // Travis Chromium needs to run without sandbox
+    customLaunchers: {
+      chrome_travis: {
+        base: 'Chrome',
+        flags: ['--no-sandbox']
+      }
+    },
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
