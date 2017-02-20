@@ -926,7 +926,7 @@ QUnit.test('properly parses seq_parameter_set_rbsp nal units', function() {
   });
 
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'seq_parameter_set_rbsp', 'identified an sequence parameter set');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.seq_parameter_set_rbsp, 'identified an sequence parameter set');
   QUnit.deepEqual(data.escapedRBSP, expectedRBSP, 'properly removed Emulation Prevention Bytes from the RBSP');
 
   QUnit.deepEqual(data.config, expectedConfig, 'parsed the sps');
@@ -962,7 +962,7 @@ QUnit.test('Properly parses seq_parameter_set VUI nal unit', function() {
   });
 
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'seq_parameter_set_rbsp', 'identified an sequence parameter set');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.seq_parameter_set_rbsp, 'identified an sequence parameter set');
   QUnit.deepEqual(data.config, expectedConfig, 'parsed the sps');
 });
 
@@ -983,7 +983,7 @@ QUnit.test('unpacks nal units from simple byte stream framing', function() {
   });
 
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'access_unit_delimiter_rbsp', 'identified an access unit delimiter');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.access_unit_delimiter_rbsp, 'identified an access unit delimiter');
   QUnit.equal(data.data.length, 2, 'calculated nal unit length');
   QUnit.equal(data.data[1], 7, 'read a payload byte');
 });
@@ -1013,7 +1013,7 @@ QUnit.test('unpacks nal units from byte streams split across pushes', function()
     ])
   });
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'access_unit_delimiter_rbsp', 'identified an access unit delimiter');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.access_unit_delimiter_rbsp, 'identified an access unit delimiter');
   QUnit.equal(data.data.length, 8, 'calculated nal unit length');
   QUnit.equal(data.data[1], 7, 'read a payload byte');
 });
@@ -1076,7 +1076,7 @@ QUnit.test('unpacks nal units from byte streams with split sync points', functio
     ])
   });
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'access_unit_delimiter_rbsp', 'identified an access unit delimiter');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.access_unit_delimiter_rbsp, 'identified an access unit delimiter');
   QUnit.equal(data.data.length, 2, 'calculated nal unit length');
   QUnit.equal(data.data[1], 7, 'read a payload byte');
 });
@@ -1097,7 +1097,7 @@ QUnit.test('parses nal unit types', function() {
   h264Stream.flush();
 
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'access_unit_delimiter_rbsp', 'identified an access unit delimiter');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.access_unit_delimiter_rbsp, 'identified an access unit delimiter');
 
   data = null;
   h264Stream.push({
@@ -1114,7 +1114,7 @@ QUnit.test('parses nal unit types', function() {
   });
   h264Stream.flush();
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'seq_parameter_set_rbsp', 'identified a sequence parameter set');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.seq_parameter_set_rbsp, 'identified a sequence parameter set');
 
   data = null;
   h264Stream.push({
@@ -1126,7 +1126,7 @@ QUnit.test('parses nal unit types', function() {
   });
   h264Stream.flush();
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'pic_parameter_set_rbsp', 'identified a picture parameter set');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.pic_parameter_set_rbsp, 'identified a picture parameter set');
 
   data = null;
   h264Stream.push({
@@ -1138,7 +1138,7 @@ QUnit.test('parses nal unit types', function() {
   });
   h264Stream.flush();
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'slice_layer_without_partitioning_rbsp_idr', 'identified a key frame');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr, 'identified a key frame');
 
   data = null;
   h264Stream.push({
@@ -1150,7 +1150,7 @@ QUnit.test('parses nal unit types', function() {
   });
   h264Stream.flush();
   QUnit.ok(data, 'generated a data event');
-  QUnit.equal(data.nalUnitType, 'sei_rbsp', 'identified a supplemental enhancement information unit');
+  QUnit.equal(data.nalUnitType, codecs.h264.unitTypes.sei_rbsp, 'identified a supplemental enhancement information unit');
 });
 
 // MP4 expects H264 (aka AVC) data to be in storage format. Storage
@@ -1231,7 +1231,7 @@ QUnit.test('can be reset', function() {
   h264Stream.flush();
 
   QUnit.equal(data.length, 2, 'generated two data events');
-  QUnit.equal(data[1].nalUnitType, 'access_unit_delimiter_rbsp', 'identified an access unit delimiter');
+  QUnit.equal(data[1].nalUnitType, codecs.h264.unitTypes.access_unit_delimiter_rbsp, 'identified an access unit delimiter');
   QUnit.equal(data[1].data.length, 2, 'calculated nal unit length');
   QUnit.equal(data[1].data[1], 7, 'read a payload byte');
 });
@@ -1256,11 +1256,11 @@ QUnit.test('concatenates NAL units into AVC elementary streams', function() {
     segment = data.boxes;
   });
   videoSegmentStream.push({
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     data: new Uint8Array([0x09, 0x01])
   });
   videoSegmentStream.push({
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     data: new Uint8Array([0x05, 0x01])
   });
   videoSegmentStream.push({
@@ -1301,22 +1301,22 @@ QUnit.test('infers sample durations from DTS values', function() {
    });
    videoSegmentStream.push({
      data: new Uint8Array([0x09, 0x01]),
-     nalUnitType: 'access_unit_delimiter_rbsp',
+     nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1
    });
    videoSegmentStream.push({
      data: new Uint8Array([0x09, 0x01]),
-     nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+     nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1
    });
    videoSegmentStream.push({
      data: new Uint8Array([0x09, 0x01]),
-     nalUnitType: 'access_unit_delimiter_rbsp',
+     nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 2
    });
    videoSegmentStream.push({
      data: new Uint8Array([0x09, 0x01]),
-     nalUnitType: 'access_unit_delimiter_rbsp',
+     nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 4
    });
    videoSegmentStream.flush();
@@ -1335,27 +1335,27 @@ QUnit.test('filters pre-IDR samples and calculate duration correctly', function(
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp,
     dts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 2
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 4
   });
   videoSegmentStream.flush();
@@ -1374,50 +1374,50 @@ QUnit.test('holds onto the last GOP and prepends the subsequent push operation w
 
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {},
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x66, 0x66]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 2,
     pts: 2
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x03]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x99, 0x99]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x04]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 4,
     pts: 4
   });
@@ -1429,31 +1429,31 @@ QUnit.test('holds onto the last GOP and prepends the subsequent push operation w
 
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 5,
     pts: 5
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 6,
     pts: 6
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {},
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1,
     pts: 1
   });  videoSegmentStream.push({
     data: new Uint8Array([0x11, 0x11]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 6,
     pts: 6
   });
@@ -1473,37 +1473,37 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment has earlier PTS', 
 
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 10,
     pts: 10
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x66, 0x66]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 10,
     pts: 10
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 11,
     pts: 11
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x03]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 12,
     pts: 12
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x99, 0x99]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 12,
     pts: 12
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x04]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 13,
     pts: 13
   });
@@ -1515,19 +1515,19 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment has earlier PTS', 
 
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 5,
     pts: 5
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 6,
     pts: 6
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x11, 0x11]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 6,
     pts: 6
   });
@@ -1544,50 +1544,50 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment has different PPS 
 
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {},
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x00]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x66, 0x66]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 2,
     pts: 2
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x03]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x99, 0x99]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x04]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 4,
     pts: 4
   });
@@ -1599,31 +1599,31 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment has different PPS 
 
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 5,
     pts: 5
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 6,
     pts: 6
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x01]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {},
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x00, 0x01]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1,
     pts: 1
   });  videoSegmentStream.push({
     data: new Uint8Array([0x11, 0x11]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 6,
     pts: 6
   });
@@ -1640,37 +1640,37 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment is more than 1 sec
 
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x66, 0x66]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 2,
     pts: 2
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x03]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x99, 0x99]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 3,
     pts: 3
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01, 0x04]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 4,
     pts: 4
   });
@@ -1682,19 +1682,19 @@ QUnit.test('doesn\'t prepend the last GOP if the next segment is more than 1 sec
 
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1000000,
     pts: 1000000
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x02, 0x02]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1000001,
     pts: 1000001
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x11, 0x11]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1000001,
     pts: 1000001
   });
@@ -1713,15 +1713,15 @@ QUnit.test('track values from seq_parameter_set_rbsp should be cleared by a flus
   });
   videoSegmentStream.push({
     data: new Uint8Array([0xFF]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
   });
   videoSegmentStream.push({
     data: new Uint8Array([0xFF]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
   });
   videoSegmentStream.push({
     data: new Uint8Array([0xFF]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {
       width: 123,
       height: 321,
@@ -1733,7 +1733,7 @@ QUnit.test('track values from seq_parameter_set_rbsp should be cleared by a flus
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x88]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {
       width: 1234,
       height: 4321,
@@ -1754,7 +1754,7 @@ QUnit.test('track values from seq_parameter_set_rbsp should be cleared by a flus
 
   videoSegmentStream.push({
     data: new Uint8Array([0x99]),
-    nalUnitType: 'seq_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.seq_parameter_set_rbsp,
     config: {
       width: 300,
       height: 200,
@@ -1782,20 +1782,20 @@ QUnit.test('track pps from pic_parameter_set_rbsp should be cleared by a flush',
   });
   videoSegmentStream.push({
     data: new Uint8Array([0xFF]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
   });
   videoSegmentStream.push({
     data: new Uint8Array([0xFF]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x01]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x02]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1
   });
   videoSegmentStream.flush();
@@ -1804,7 +1804,7 @@ QUnit.test('track pps from pic_parameter_set_rbsp should be cleared by a flush',
 
   videoSegmentStream.push({
     data: new Uint8Array([0x03]),
-    nalUnitType: 'pic_parameter_set_rbsp',
+    nalUnitType: codecs.h264.unitTypes.pic_parameter_set_rbsp,
     dts: 1
   });
   videoSegmentStream.flush();
@@ -1819,24 +1819,24 @@ QUnit.test('calculates compositionTimeOffset values from the PTS/DTS', function(
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 1
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 2
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 1,
     pts: 4
   });
@@ -1858,25 +1858,25 @@ QUnit.test('calculates baseMediaDecodeTime values from the first DTS ever seen a
 
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 100,
     pts: 100
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 100,
     pts: 100
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 200,
     pts: 200
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 300,
     pts: 300
   });
@@ -1900,25 +1900,25 @@ QUnit.test('calculates baseMediaDecodeTime values relative to a customizable bas
 
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 100,
     pts: 100
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 100,
     pts: 100
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 200,
     pts: 200
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 300,
     pts: 300
   });
@@ -1942,25 +1942,25 @@ QUnit.test('subtract the first frame\'s compositionTimeOffset from baseMediaDeco
 
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 50,
     pts: 60
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'slice_layer_without_partitioning_rbsp_idr',
+    nalUnitType: codecs.h264.unitTypes.slice_layer_without_partitioning_rbsp_idr,
     dts: 50,
     pts: 60
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 100,
     pts: 110
   });
   videoSegmentStream.push({
     data: new Uint8Array([0x09, 0x01]),
-    nalUnitType: 'access_unit_delimiter_rbsp',
+    nalUnitType: codecs.h264.unitTypes.access_unit_delimiter_rbsp,
     dts: 150,
     pts: 160
   });

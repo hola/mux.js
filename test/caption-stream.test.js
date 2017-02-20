@@ -4,6 +4,7 @@ var
   captionStream,
   m2ts = require('../lib/m2ts'),
   mp4 = require('../lib/mp4'),
+  codecs = require('../lib/codecs'),
   QUnit = require('qunit'),
   sintelCaptions = require('./utils/sintel-captions'),
   multichannelCaptions = require('./utils/multi-channel-captions');
@@ -39,7 +40,7 @@ QUnit.test('parses SEIs messages larger than 255 bytes', function() {
   data[16] = 0xff; // marker_bits
 
   captionStream.push({
-    nalUnitType: 'sei_rbsp',
+    nalUnitType: codecs.h264.unitTypes.sei_rbsp,
     escapedRBSP: data
   });
   captionStream.flush();
@@ -74,7 +75,7 @@ QUnit.test('parses SEIs containing multiple messages', function() {
   data[21] = 0xff; // marker_bits
 
   captionStream.push({
-    nalUnitType: 'sei_rbsp',
+    nalUnitType: codecs.h264.unitTypes.sei_rbsp,
     escapedRBSP: data
   });
   captionStream.flush();
@@ -87,7 +88,7 @@ QUnit.test('ignores SEIs that do not have type user_data_registered_itu_t_t35', 
     captions.push(caption);
   });
   captionStream.push({
-    nalUnitType: 'sei_rbsp',
+    nalUnitType: codecs.h264.unitTypes.sei_rbsp,
     escapedRBSP: new Uint8Array([
       0x05 // payload_type !== user_data_registered_itu_t_t35
     ])
@@ -102,7 +103,7 @@ QUnit.test('parses a minimal example of caption data', function() {
     packets.push(packet);
   };
   captionStream.push({
-    nalUnitType: 'sei_rbsp',
+    nalUnitType: codecs.h264.unitTypes.sei_rbsp,
     escapedRBSP: new Uint8Array([
       0x04, // payload_type === user_data_registered_itu_t_t35
 
